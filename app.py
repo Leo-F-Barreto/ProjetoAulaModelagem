@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, request, jsonify, render_template
 from frete import calcular_frete
 
@@ -10,16 +11,37 @@ def index():
 @app.route('/calcular', methods=['POST'])
 def calcular():
     data = request.get_json()
+    if not data:
+        return jsonify({"erro": "Nenhum dado enviado"}), 400
+
     try:
         valor = float(data.get('valor', 0))
         regiao = data.get('regiao', '')
-        frete_base = float(data.get('frete_base', 0))
+        frete_base = float(data.get('frete_base', 20.0))
         cupom = data.get('cupom', '')
 
-        # RB-02: Exibir erro se o valor for inválido
+        # Chama a função de domínio
         resultado = calcular_frete(valor, regiao, frete_base, cupom)
-        return jsonify(resultado), 200
+
+        # Normaliza o retorno para JSON, já que a função pode retornar float ou dict
+        if isinstance(resultado, dict):
+            valor_final = resultado["valor_carrinho"]
+            frete = resultado["frete_calculado"]
+        else:
+            valor_final = valor
+            frete = resultado
+
+        total = valor_final + frete
+
+        # Resposta otimizada para RF-02 (baixo tempo de resposta)
+        return jsonify({
+            "valor_carrinho": round(valor_final, 2),
+            "frete": round(frete, 2),
+            "total": round(total, 2)
+        }), 200
+
     except ValueError as e:
+        # RB-02: Retorna HTTP 400 em caso de erro na regra de domínio
         return jsonify({"erro": str(e)}), 400
     except Exception:
         return jsonify({"erro": "Erro interno no servidor"}), 500
