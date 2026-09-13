@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Frete</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 20px auto; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input, select, button { padding: 8px; }
+        .result-box { margin-top: 20px; padding: 15px; border: 1px solid #ccc; display: none; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Cálculo de Frete</h2>
+    <form id="freteForm">
+        <label>Valor do Carrinho (R$):</label>
+        <input type="number" id="valor" step="0.01" required>
+
+        <label>Região:</label>
+        <select id="regiao" required>
+            <option value="Norte">Norte</option>
+            <option value="Sul">Sul</option>
+            <option value="Leste">Leste</option>
+            <option value="Oeste">Oeste</option>
+            <option value="Nordeste">Nordeste</option>
+            <option value="Centro-Oeste">Centro-Oeste</option>
+            <option value="Sudeste">Sudeste</option>
+        </select>
+
+        <label>Valor do Frete Base (R$):</label>
+        <input type="number" id="frete_base" step="0.01" required>
+
+        <label>Cupom de Desconto:</label>
+        <input type="text" id="cupom" placeholder="Ex: PROMO10">
+
+        <button type="submit">Calcular Total</button>
+    </form>
+
+    <div id="resultado" class="result-box"></div>
+
+    <script>
+        document.getElementById('freteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const box = document.getElementById('resultado');
+            box.style.display = 'block';
+            box.innerHTML = 'Calculando...';
+
+            const payload = {
+                valor: document.getElementById('valor').value,
+                regiao: document.getElementById('regiao').value,
+                frete_base: document.getElementById('frete_base').value,
+                cupom: document.getElementById('cupom').value.trim()
+            };
+
+            try {
+                const response = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    box.innerHTML = `<span class="error">${data.erro}</span>`;
+                } else {
+                    box.innerHTML = `
+                        <strong>Carrinho:</strong> R$ ${data.valor_carrinho.toFixed(2)}<br>
+                        <strong>Frete:</strong> R$ ${data.frete_calculado.toFixed(2)}<br>
+                        <strong>Total Final:</strong> R$ ${data.total.toFixed(2)}
+                    `;
+                }
+            } catch (error) {
+                box.innerHTML = '<span class="error">Erro de conexão com o servidor.</span>';
+            }
+        });
+    </script>
+</body>
+</html>
