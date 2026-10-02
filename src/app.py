@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify, render_template
-from frete import calcular_frete
+from src.frete import calcular_frete
 
 app = Flask(__name__)
 

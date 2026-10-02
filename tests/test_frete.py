@@ -1,5 +1,5 @@
 import pytest
-from frete import calcular_frete
+from src.frete import calcular_frete
 
 # >_ Conecta com: Atende RF-01 e RB-01
 def test_frete_gratis_padrao():
